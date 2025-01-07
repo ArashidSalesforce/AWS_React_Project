@@ -1,0 +1,23 @@
+{
+  "staging": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-kairosv3-staging-d208c-authRole",
+      "UnauthRoleArn": "arn:aws:iam::491085409070:role/amplify-kairosv3-staging-d208c-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::491085409070:role/amplify-kairosv3-staging-d208c-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-kairosv3-staging-d208c-deployment",
+      "UnauthRoleName": "amplify-kairosv3-staging-d208c-unauthRole",
+      "StackName": "amplify-kairosv3-staging-d208c",
+      "StackId": "arn:aws:cloudformation:us-east-1:491085409070:stack/amplify-kairosv3-staging-d208c/5c7f9e70-c932-11ef-860f-0affe0741fd3",
+      "AmplifyAppId": "d373h9f59dzchc"
+    },
+    "categories": {
+      "auth": {
+        "KairosV3": {}
+      },
+      "api": {
+        "KairosV3": {}
+      }
+    }
+  }
+}

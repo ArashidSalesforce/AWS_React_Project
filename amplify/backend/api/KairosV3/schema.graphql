@@ -1,0 +1,46 @@
+type User @model @auth(rules: [{ allow: public }]) { 
+  id: ID!
+  username: String!
+  email: String!
+  name: String!
+  role: Role!
+  contactNumber: String
+  points: Int
+  assignments: [Assignment] @hasMany(indexName: "byOwner", fields: ["id"])
+}
+
+enum Role {
+  ADMIN
+  SUPERVISOR
+  TEACHER
+  PARENT
+  STUDENT
+}
+
+type Assignment @model @auth(rules: [{ allow: public }]) {
+  id: ID!
+  name: String!
+  description: String
+  isActive: Boolean!
+  questions: AWSJSON
+  owner: ID! @index(name: "byOwner")
+}
+
+type QuizAttempt
+  @model
+  @auth(rules: [{ allow: public }]) {
+  id: ID!
+  score: Int
+  completed: Boolean!
+  userAnswers: AWSJSON
+  assignmentID: ID! @index(name: "byAssignment", queryField: "quizAttemptsByAssignment")
+  userId: String! @index(name: "byUser", queryField: "quizAttemptsByUser")
+  ownerRole: Role!
+}
+
+type UserAssignment @model @auth(rules: [{ allow: public }]) {
+  id: ID!
+  status: String!
+  assignmentID: ID! @index(name: "byAssignment")
+  userId: String!
+}

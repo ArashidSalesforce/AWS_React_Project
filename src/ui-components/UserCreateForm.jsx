@@ -1,0 +1,685 @@
+/***************************************************************************
+ * The contents of this file were generated with Amplify Studio.           *
+ * Please refrain from making any modifications to this file.              *
+ * Any changes to this file will be overwritten when running amplify pull. *
+ **************************************************************************/
+
+/* eslint-disable */
+import * as React from "react";
+import {
+  Autocomplete,
+  Badge,
+  Button,
+  Divider,
+  Flex,
+  Grid,
+  Icon,
+  ScrollView,
+  SelectField,
+  Text,
+  TextField,
+  useTheme,
+} from "@aws-amplify/ui-react";
+import { fetchByPath, getOverrideProps, validateField } from "./utils";
+import { generateClient } from "aws-amplify/api";
+import { listAssignments } from "../graphql/queries";
+import { createUser, updateAssignment } from "../graphql/mutations";
+const client = generateClient();
+function ArrayField({
+  items = [],
+  onChange,
+  label,
+  inputFieldRef,
+  children,
+  hasError,
+  setFieldValue,
+  currentFieldValue,
+  defaultFieldValue,
+  lengthLimit,
+  getBadgeText,
+  runValidationTasks,
+  errorMessage,
+}) {
+  const labelElement = <Text>{label}</Text>;
+  const {
+    tokens: {
+      components: {
+        fieldmessages: { error: errorStyles },
+      },
+    },
+  } = useTheme();
+  const [selectedBadgeIndex, setSelectedBadgeIndex] = React.useState();
+  const [isEditing, setIsEditing] = React.useState();
+  React.useEffect(() => {
+    if (isEditing) {
+      inputFieldRef?.current?.focus();
+    }
+  }, [isEditing]);
+  const removeItem = async (removeIndex) => {
+    const newItems = items.filter((value, index) => index !== removeIndex);
+    await onChange(newItems);
+    setSelectedBadgeIndex(undefined);
+  };
+  const addItem = async () => {
+    const { hasError } = runValidationTasks();
+    if (
+      currentFieldValue !== undefined &&
+      currentFieldValue !== null &&
+      currentFieldValue !== "" &&
+      !hasError
+    ) {
+      const newItems = [...items];
+      if (selectedBadgeIndex !== undefined) {
+        newItems[selectedBadgeIndex] = currentFieldValue;
+        setSelectedBadgeIndex(undefined);
+      } else {
+        newItems.push(currentFieldValue);
+      }
+      await onChange(newItems);
+      setIsEditing(false);
+    }
+  };
+  const arraySection = (
+    <React.Fragment>
+      {!!items?.length && (
+        <ScrollView height="inherit" width="inherit" maxHeight={"7rem"}>
+          {items.map((value, index) => {
+            return (
+              <Badge
+                key={index}
+                style={{
+                  cursor: "pointer",
+                  alignItems: "center",
+                  marginRight: 3,
+                  marginTop: 3,
+                  backgroundColor:
+                    index === selectedBadgeIndex ? "#B8CEF9" : "",
+                }}
+                onClick={() => {
+                  setSelectedBadgeIndex(index);
+                  setFieldValue(items[index]);
+                  setIsEditing(true);
+                }}
+              >
+                {getBadgeText ? getBadgeText(value) : value.toString()}
+                <Icon
+                  style={{
+                    cursor: "pointer",
+                    paddingLeft: 3,
+                    width: 20,
+                    height: 20,
+                  }}
+                  viewBox={{ width: 20, height: 20 }}
+                  paths={[
+                    {
+                      d: "M10 10l5.09-5.09L10 10l5.09 5.09L10 10zm0 0L4.91 4.91 10 10l-5.09 5.09L10 10z",
+                      stroke: "black",
+                    },
+                  ]}
+                  ariaLabel="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    removeItem(index);
+                  }}
+                />
+              </Badge>
+            );
+          })}
+        </ScrollView>
+      )}
+      <Divider orientation="horizontal" marginTop={5} />
+    </React.Fragment>
+  );
+  if (lengthLimit !== undefined && items.length >= lengthLimit && !isEditing) {
+    return (
+      <React.Fragment>
+        {labelElement}
+        {arraySection}
+      </React.Fragment>
+    );
+  }
+  return (
+    <React.Fragment>
+      {labelElement}
+      {isEditing && children}
+      {!isEditing ? (
+        <>
+          <Button
+            onClick={() => {
+              setIsEditing(true);
+            }}
+          >
+            Add item
+          </Button>
+          {errorMessage && hasError && (
+            <Text color={errorStyles.color} fontSize={errorStyles.fontSize}>
+              {errorMessage}
+            </Text>
+          )}
+        </>
+      ) : (
+        <Flex justifyContent="flex-end">
+          {(currentFieldValue || isEditing) && (
+            <Button
+              children="Cancel"
+              type="button"
+              size="small"
+              onClick={() => {
+                setFieldValue(defaultFieldValue);
+                setIsEditing(false);
+                setSelectedBadgeIndex(undefined);
+              }}
+            ></Button>
+          )}
+          <Button size="small" variation="link" onClick={addItem}>
+            {selectedBadgeIndex !== undefined ? "Save" : "Add"}
+          </Button>
+        </Flex>
+      )}
+      {arraySection}
+    </React.Fragment>
+  );
+}
+export default function UserCreateForm(props) {
+  const {
+    clearOnSuccess = true,
+    onSuccess,
+    onError,
+    onSubmit,
+    onValidate,
+    onChange,
+    overrides,
+    ...rest
+  } = props;
+  const initialValues = {
+    username: "",
+    email: "",
+    name: "",
+    role: "",
+    contactNumber: "",
+    assignments: [],
+  };
+  const [username, setUsername] = React.useState(initialValues.username);
+  const [email, setEmail] = React.useState(initialValues.email);
+  const [name, setName] = React.useState(initialValues.name);
+  const [role, setRole] = React.useState(initialValues.role);
+  const [contactNumber, setContactNumber] = React.useState(
+    initialValues.contactNumber
+  );
+  const [assignments, setAssignments] = React.useState(
+    initialValues.assignments
+  );
+  const [assignmentsLoading, setAssignmentsLoading] = React.useState(false);
+  const [assignmentsRecords, setAssignmentsRecords] = React.useState([]);
+  const autocompleteLength = 10;
+  const [errors, setErrors] = React.useState({});
+  const resetStateValues = () => {
+    setUsername(initialValues.username);
+    setEmail(initialValues.email);
+    setName(initialValues.name);
+    setRole(initialValues.role);
+    setContactNumber(initialValues.contactNumber);
+    setAssignments(initialValues.assignments);
+    setCurrentAssignmentsValue(undefined);
+    setCurrentAssignmentsDisplayValue("");
+    setErrors({});
+  };
+  const [currentAssignmentsDisplayValue, setCurrentAssignmentsDisplayValue] =
+    React.useState("");
+  const [currentAssignmentsValue, setCurrentAssignmentsValue] =
+    React.useState(undefined);
+  const assignmentsRef = React.createRef();
+  const getIDValue = {
+    assignments: (r) => JSON.stringify({ id: r?.id }),
+  };
+  const assignmentsIdSet = new Set(
+    Array.isArray(assignments)
+      ? assignments.map((r) => getIDValue.assignments?.(r))
+      : getIDValue.assignments?.(assignments)
+  );
+  const getDisplayValue = {
+    assignments: (r) => `${r?.name ? r?.name + " - " : ""}${r?.id}`,
+  };
+  const validations = {
+    username: [{ type: "Required" }],
+    email: [{ type: "Required" }],
+    name: [{ type: "Required" }],
+    role: [{ type: "Required" }],
+    contactNumber: [],
+    assignments: [],
+  };
+  const runValidationTasks = async (
+    fieldName,
+    currentValue,
+    getDisplayValue
+  ) => {
+    const value =
+      currentValue && getDisplayValue
+        ? getDisplayValue(currentValue)
+        : currentValue;
+    let validationResponse = validateField(value, validations[fieldName]);
+    const customValidator = fetchByPath(onValidate, fieldName);
+    if (customValidator) {
+      validationResponse = await customValidator(value, validationResponse);
+    }
+    setErrors((errors) => ({ ...errors, [fieldName]: validationResponse }));
+    return validationResponse;
+  };
+  const fetchAssignmentsRecords = async (value) => {
+    setAssignmentsLoading(true);
+    const newOptions = [];
+    let newNext = "";
+    while (newOptions.length < autocompleteLength && newNext != null) {
+      const variables = {
+        limit: autocompleteLength * 5,
+        filter: {
+          or: [{ name: { contains: value } }, { id: { contains: value } }],
+        },
+      };
+      if (newNext) {
+        variables["nextToken"] = newNext;
+      }
+      const result = (
+        await client.graphql({
+          query: listAssignments.replaceAll("__typename", ""),
+          variables,
+        })
+      )?.data?.listAssignments?.items;
+      var loaded = result.filter(
+        (item) => !assignmentsIdSet.has(getIDValue.assignments?.(item))
+      );
+      newOptions.push(...loaded);
+      newNext = result.nextToken;
+    }
+    setAssignmentsRecords(newOptions.slice(0, autocompleteLength));
+    setAssignmentsLoading(false);
+  };
+  React.useEffect(() => {
+    fetchAssignmentsRecords("");
+  }, []);
+  return (
+    <Grid
+      as="form"
+      rowGap="15px"
+      columnGap="15px"
+      padding="20px"
+      onSubmit={async (event) => {
+        event.preventDefault();
+        let modelFields = {
+          username,
+          email,
+          name,
+          role,
+          contactNumber,
+          assignments,
+        };
+        const validationResponses = await Promise.all(
+          Object.keys(validations).reduce((promises, fieldName) => {
+            if (Array.isArray(modelFields[fieldName])) {
+              promises.push(
+                ...modelFields[fieldName].map((item) =>
+                  runValidationTasks(
+                    fieldName,
+                    item,
+                    getDisplayValue[fieldName]
+                  )
+                )
+              );
+              return promises;
+            }
+            promises.push(
+              runValidationTasks(
+                fieldName,
+                modelFields[fieldName],
+                getDisplayValue[fieldName]
+              )
+            );
+            return promises;
+          }, [])
+        );
+        if (validationResponses.some((r) => r.hasError)) {
+          return;
+        }
+        if (onSubmit) {
+          modelFields = onSubmit(modelFields);
+        }
+        try {
+          Object.entries(modelFields).forEach(([key, value]) => {
+            if (typeof value === "string" && value === "") {
+              modelFields[key] = null;
+            }
+          });
+          const modelFieldsToSave = {
+            username: modelFields.username,
+            email: modelFields.email,
+            name: modelFields.name,
+            role: modelFields.role,
+            contactNumber: modelFields.contactNumber,
+          };
+          const user = (
+            await client.graphql({
+              query: createUser.replaceAll("__typename", ""),
+              variables: {
+                input: {
+                  ...modelFieldsToSave,
+                },
+              },
+            })
+          )?.data?.createUser;
+          const promises = [];
+          promises.push(
+            ...assignments.reduce((promises, original) => {
+              promises.push(
+                client.graphql({
+                  query: updateAssignment.replaceAll("__typename", ""),
+                  variables: {
+                    input: {
+                      id: original.id,
+                      owner: user.id,
+                    },
+                  },
+                })
+              );
+              return promises;
+            }, [])
+          );
+          await Promise.all(promises);
+          if (onSuccess) {
+            onSuccess(modelFields);
+          }
+          if (clearOnSuccess) {
+            resetStateValues();
+          }
+        } catch (err) {
+          if (onError) {
+            const messages = err.errors.map((e) => e.message).join("\n");
+            onError(modelFields, messages);
+          }
+        }
+      }}
+      {...getOverrideProps(overrides, "UserCreateForm")}
+      {...rest}
+    >
+      <TextField
+        label="Username"
+        isRequired={true}
+        isReadOnly={false}
+        value={username}
+        onChange={(e) => {
+          let { value } = e.target;
+          if (onChange) {
+            const modelFields = {
+              username: value,
+              email,
+              name,
+              role,
+              contactNumber,
+              assignments,
+            };
+            const result = onChange(modelFields);
+            value = result?.username ?? value;
+          }
+          if (errors.username?.hasError) {
+            runValidationTasks("username", value);
+          }
+          setUsername(value);
+        }}
+        onBlur={() => runValidationTasks("username", username)}
+        errorMessage={errors.username?.errorMessage}
+        hasError={errors.username?.hasError}
+        {...getOverrideProps(overrides, "username")}
+      ></TextField>
+      <TextField
+        label="Email"
+        isRequired={true}
+        isReadOnly={false}
+        value={email}
+        onChange={(e) => {
+          let { value } = e.target;
+          if (onChange) {
+            const modelFields = {
+              username,
+              email: value,
+              name,
+              role,
+              contactNumber,
+              assignments,
+            };
+            const result = onChange(modelFields);
+            value = result?.email ?? value;
+          }
+          if (errors.email?.hasError) {
+            runValidationTasks("email", value);
+          }
+          setEmail(value);
+        }}
+        onBlur={() => runValidationTasks("email", email)}
+        errorMessage={errors.email?.errorMessage}
+        hasError={errors.email?.hasError}
+        {...getOverrideProps(overrides, "email")}
+      ></TextField>
+      <TextField
+        label="Name"
+        isRequired={true}
+        isReadOnly={false}
+        value={name}
+        onChange={(e) => {
+          let { value } = e.target;
+          if (onChange) {
+            const modelFields = {
+              username,
+              email,
+              name: value,
+              role,
+              contactNumber,
+              assignments,
+            };
+            const result = onChange(modelFields);
+            value = result?.name ?? value;
+          }
+          if (errors.name?.hasError) {
+            runValidationTasks("name", value);
+          }
+          setName(value);
+        }}
+        onBlur={() => runValidationTasks("name", name)}
+        errorMessage={errors.name?.errorMessage}
+        hasError={errors.name?.hasError}
+        {...getOverrideProps(overrides, "name")}
+      ></TextField>
+      <SelectField
+        label="Role"
+        placeholder="Please select an option"
+        isDisabled={false}
+        value={role}
+        onChange={(e) => {
+          let { value } = e.target;
+          if (onChange) {
+            const modelFields = {
+              username,
+              email,
+              name,
+              role: value,
+              contactNumber,
+              assignments,
+            };
+            const result = onChange(modelFields);
+            value = result?.role ?? value;
+          }
+          if (errors.role?.hasError) {
+            runValidationTasks("role", value);
+          }
+          setRole(value);
+        }}
+        onBlur={() => runValidationTasks("role", role)}
+        errorMessage={errors.role?.errorMessage}
+        hasError={errors.role?.hasError}
+        {...getOverrideProps(overrides, "role")}
+      >
+        <option
+          children="Admin"
+          value="ADMIN"
+          {...getOverrideProps(overrides, "roleoption0")}
+        ></option>
+        <option
+          children="Supervisor"
+          value="SUPERVISOR"
+          {...getOverrideProps(overrides, "roleoption1")}
+        ></option>
+        <option
+          children="Teacher"
+          value="TEACHER"
+          {...getOverrideProps(overrides, "roleoption2")}
+        ></option>
+        <option
+          children="Parent"
+          value="PARENT"
+          {...getOverrideProps(overrides, "roleoption3")}
+        ></option>
+        <option
+          children="Student"
+          value="STUDENT"
+          {...getOverrideProps(overrides, "roleoption4")}
+        ></option>
+      </SelectField>
+      <TextField
+        label="Contact number"
+        isRequired={false}
+        isReadOnly={false}
+        value={contactNumber}
+        onChange={(e) => {
+          let { value } = e.target;
+          if (onChange) {
+            const modelFields = {
+              username,
+              email,
+              name,
+              role,
+              contactNumber: value,
+              assignments,
+            };
+            const result = onChange(modelFields);
+            value = result?.contactNumber ?? value;
+          }
+          if (errors.contactNumber?.hasError) {
+            runValidationTasks("contactNumber", value);
+          }
+          setContactNumber(value);
+        }}
+        onBlur={() => runValidationTasks("contactNumber", contactNumber)}
+        errorMessage={errors.contactNumber?.errorMessage}
+        hasError={errors.contactNumber?.hasError}
+        {...getOverrideProps(overrides, "contactNumber")}
+      ></TextField>
+      <ArrayField
+        onChange={async (items) => {
+          let values = items;
+          if (onChange) {
+            const modelFields = {
+              username,
+              email,
+              name,
+              role,
+              contactNumber,
+              assignments: values,
+            };
+            const result = onChange(modelFields);
+            values = result?.assignments ?? values;
+          }
+          setAssignments(values);
+          setCurrentAssignmentsValue(undefined);
+          setCurrentAssignmentsDisplayValue("");
+        }}
+        currentFieldValue={currentAssignmentsValue}
+        label={"Assignments"}
+        items={assignments}
+        hasError={errors?.assignments?.hasError}
+        runValidationTasks={async () =>
+          await runValidationTasks("assignments", currentAssignmentsValue)
+        }
+        errorMessage={errors?.assignments?.errorMessage}
+        getBadgeText={getDisplayValue.assignments}
+        setFieldValue={(model) => {
+          setCurrentAssignmentsDisplayValue(
+            model ? getDisplayValue.assignments(model) : ""
+          );
+          setCurrentAssignmentsValue(model);
+        }}
+        inputFieldRef={assignmentsRef}
+        defaultFieldValue={""}
+      >
+        <Autocomplete
+          label="Assignments"
+          isRequired={false}
+          isReadOnly={false}
+          placeholder="Search Assignment"
+          value={currentAssignmentsDisplayValue}
+          options={assignmentsRecords
+            .filter((r) => !assignmentsIdSet.has(getIDValue.assignments?.(r)))
+            .map((r) => ({
+              id: getIDValue.assignments?.(r),
+              label: getDisplayValue.assignments?.(r),
+            }))}
+          isLoading={assignmentsLoading}
+          onSelect={({ id, label }) => {
+            setCurrentAssignmentsValue(
+              assignmentsRecords.find((r) =>
+                Object.entries(JSON.parse(id)).every(
+                  ([key, value]) => r[key] === value
+                )
+              )
+            );
+            setCurrentAssignmentsDisplayValue(label);
+            runValidationTasks("assignments", label);
+          }}
+          onClear={() => {
+            setCurrentAssignmentsDisplayValue("");
+          }}
+          onChange={(e) => {
+            let { value } = e.target;
+            fetchAssignmentsRecords(value);
+            if (errors.assignments?.hasError) {
+              runValidationTasks("assignments", value);
+            }
+            setCurrentAssignmentsDisplayValue(value);
+            setCurrentAssignmentsValue(undefined);
+          }}
+          onBlur={() =>
+            runValidationTasks("assignments", currentAssignmentsDisplayValue)
+          }
+          errorMessage={errors.assignments?.errorMessage}
+          hasError={errors.assignments?.hasError}
+          ref={assignmentsRef}
+          labelHidden={true}
+          {...getOverrideProps(overrides, "assignments")}
+        ></Autocomplete>
+      </ArrayField>
+      <Flex
+        justifyContent="space-between"
+        {...getOverrideProps(overrides, "CTAFlex")}
+      >
+        <Button
+          children="Clear"
+          type="reset"
+          onClick={(event) => {
+            event.preventDefault();
+            resetStateValues();
+          }}
+          {...getOverrideProps(overrides, "ClearButton")}
+        ></Button>
+        <Flex
+          gap="15px"
+          {...getOverrideProps(overrides, "RightAlignCTASubFlex")}
+        >
+          <Button
+            children="Submit"
+            type="submit"
+            variation="primary"
+            isDisabled={Object.values(errors).some((e) => e?.hasError)}
+            {...getOverrideProps(overrides, "SubmitButton")}
+          ></Button>
+        </Flex>
+      </Flex>
+    </Grid>
+  );
+}
