@@ -38,27 +38,27 @@ This project demonstrates proficiency in:
 ## Screenshots
 
 ### Login Page
-![Login Page](uploads/file-Aso1WHUHBrrM6rvFaWKcvB.png)
+![Login Page](awsreact1.png)
 **Highlights**: AWS Cognito-powered authentication with a clean, Tailwind CSS-based UI.
 
 ### Forgot Password Page
-![Forgot Password Page](uploads/file-F1md2PsfsJg9LA1gzetGZY.png)
+![Forgot Password Page](awsreact2.png)
 **Highlights**: Secure password reset functionality using AWS Cognito.
 
 ### Home Page
-![Home Page](uploads/file-5oVJij4xqjrz9nguwvXE96.png)
+![Home Page](awsreact4.png)
 **Highlights**: Dynamic data fetched from AWS AppSync GraphQL API.
 
-### Notes Page
-![Notes Page](uploads/file-LYue7adfsdS13vyjRXVMRR.png)
+### Scores Page
+![Notes Page](awsreact5.png)
 **Highlights**: Data storage and retrieval from DynamoDB, with export functionality.
 
 ### Contact Page
-![Contact Page](uploads/file-1X1LUSBcB6shYpdrv3QjaY.png)
+![Contact Page](awsreact7.png)
 **Highlights**: Form validation and API integration for user messages.
 
 ### Dynamic Filtering
-![Dynamic Filtering](uploads/file-9YFhETpfJCWZPR41thk1XY.png)
+![Dynamic Filtering](awsreact6.png)
 **Highlights**: Interactive UI powered by React state management and Tailwind.
 
 ## Key Features
